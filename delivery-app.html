@@ -257,7 +257,7 @@
     }
 
     .menu-emoji-box {
-      width: 58px; height: 58px;
+      width: 80px; height: 80px;
       background: var(--bg); border-radius: 12px;
       display: flex; align-items: center; justify-content: center;
       font-size: 36px; flex-shrink: 0;
@@ -544,6 +544,7 @@
       max-width: 250px; padding: 10px 14px;
       border-radius: 18px; font-size: 14px; line-height: 1.5;
       overflow-wrap: break-word; word-break: keep-all;
+      white-space: pre-wrap;
     }
     .msg-row.mine .msg-bubble {
       background: var(--mint); color: white;
@@ -874,23 +875,33 @@
 // ════════════════════════════
 const RESTAURANTS = [
   {
-    id: 1, name: '치킨마루', emoji: '🍗', bg: '#FFF3E0',
+    id: 1, name: 'bhc', emoji: '🍗', bg: '#FFF3E0', img: 'YUMYUMsrc/bhc.jpg.png',
     rating: 4.9, time: '25~35분', fee: 2500,
     menus: [
-      { id: 11, name: '후라이드 치킨',  price: 18000, emoji: '🍗' },
-      { id: 12, name: '양념 치킨',      price: 19000, emoji: '🍗' },
-      { id: 13, name: '반반 치킨',      price: 20000, emoji: '🍗' },
-      { id: 14, name: '콜라 1.5L',     price:  3000, emoji: '🥤' },
+      { id: 11, name: '핫후라이드',        price: 23000, emoji: '🍗', img: 'YUMYUMsrc/bhc1.jpg.png' },
+      { id: 12, name: '쏘이갈릭킹(허니)', price: 23900, emoji: '🍗', img: 'YUMYUMsrc/bhc2.jpg.png' },
+      { id: 13, name: '콰삭킹',           price: 23000, emoji: '🍗', img: 'YUMYUMsrc/bhc3.jpg.png' },
+      { id: 14, name: '뿌링클',           price: 23000, emoji: '🍗', img: 'YUMYUMsrc/bhc4.jpg.png' },
+      { id: 15, name: '맛초킹',           price: 23000, emoji: '🍗', img: 'YUMYUMsrc/bhc5.jpg.png' },
+      { id: 16, name: '핫뿌링클',         price: 24000, emoji: '🍗', img: 'YUMYUMsrc/bhc6.jpg.png' },
+      { id: 17, name: '골드킹',           price: 22000, emoji: '🍗', img: 'YUMYUMsrc/bhc7.jpg.png' },
+      { id: 18, name: '뿌링치즈볼',       price:  6500, emoji: '🍗', img: 'YUMYUMsrc/bhc8.jpg.png' },
+      { id: 19, name: '제로콜라 1.5L',        price:  2500, emoji: '🥤', img: 'YUMYUMsrc/bhc9.jpg.png' },
     ]
   },
   {
-    id: 2, name: '피자팰리스', emoji: '🍕', bg: '#FFEBEE',
+    id: 2, name: '노모어피자', emoji: '🍕', bg: '#FFEBEE', img: 'YUMYUMsrc/nomore.jpg.png',
     rating: 4.7, time: '30~40분', fee: 0,
     menus: [
-      { id: 21, name: '포테이토 피자',  price: 22000, emoji: '🍕' },
-      { id: 22, name: '불고기 피자',    price: 24000, emoji: '🍕' },
-      { id: 23, name: '치즈 피자',      price: 20000, emoji: '🧀' },
-      { id: 24, name: '콘수프',         price:  4000, emoji: '🥣' },
+      { id: 21, name: '치즈피자',              price: 18800, emoji: '🍕', img: 'YUMYUMsrc/nomore1.jpg.png' },
+      { id: 22, name: '페퍼로니피자',          price: 19800, emoji: '🍕', img: 'YUMYUMsrc/nomore2.jpg.png' },
+      { id: 23, name: '베이컨포테이토피자',    price: 21800, emoji: '🍕', img: 'YUMYUMsrc/nomore3.jpg.png' },
+      { id: 24, name: '스윗고구마피자',        price: 21800, emoji: '🍕', img: 'YUMYUMsrc/nomore4.jpg.png' },
+      { id: 25, name: '베이컨하와이안피자',    price: 22800, emoji: '🍕', img: 'YUMYUMsrc/nomore5.jpg.png' },
+      { id: 26, name: '바질마스카포네뇨끼피자',price: 22800, emoji: '🍕', img: 'YUMYUMsrc/nomore6.jpg.png' },
+      { id: 27, name: '콰트로치즈피자',        price: 22800, emoji: '🧀', img: 'YUMYUMsrc/nomore7.jpg.png' },
+      { id: 28, name: '슈퍼콤비네이션피자',    price: 23800, emoji: '🥣', img: 'YUMYUMsrc/nomore8.jpg.png' },
+      { id: 29, name: '옥수수새우피자',        price: 23800, emoji: '🥣', img: 'YUMYUMsrc/nomore9.jpg.png' },
     ]
   },
   {
@@ -1199,7 +1210,9 @@ function setupSocket() {
 function renderHome() {
   document.getElementById('rest-list').innerHTML = RESTAURANTS.map(r => `
     <div class="rest-card" onclick="openRest(${r.id})">
-      <div class="rest-thumb" style="background:${r.bg}">${r.emoji}</div>
+      <div class="rest-thumb" style="${r.img ? '' : 'background:' + r.bg}">
+        ${r.img ? `<img src="${r.img}" alt="${r.name}" style="width:100%;height:100%;object-fit:cover;">` : r.emoji}
+      </div>
       <div class="rest-info">
         <h4>${r.name}</h4>
         <div class="rest-meta">
@@ -1224,10 +1237,18 @@ function openRest(id) {
 function renderRestScreen() {
   const r    = curRest;
   const hero = document.getElementById('rest-hero');
-  hero.style.background = r.bg;
+  if (r.img) {
+    hero.style.background = '';
+    hero.style.backgroundImage = `url('${r.img}')`;
+    hero.style.backgroundSize = 'cover';
+    hero.style.backgroundPosition = 'center';
+  } else {
+    hero.style.background = r.bg;
+    hero.style.backgroundImage = '';
+  }
   hero.innerHTML = `
     <button class="back-btn" onclick="back()">←</button>
-    <span style="font-size:80px">${r.emoji}</span>
+    ${r.img ? '' : `<span style="font-size:80px">${r.emoji}</span>`}
   `;
   document.getElementById('rest-name').textContent = r.name;
   document.getElementById('rest-meta').innerHTML = `
@@ -1239,7 +1260,9 @@ function renderRestScreen() {
     `<div class="menu-group-title">메뉴</div>` +
     r.menus.map(m => `
       <div class="menu-item">
-        <div class="menu-emoji-box">${m.emoji}</div>
+        <div class="menu-emoji-box">
+          ${m.img ? `<img src="${m.img}" alt="${m.name}" style="width:100%;height:100%;object-fit:cover;border-radius:12px;">` : m.emoji}
+        </div>
         <div class="menu-detail">
           <div class="name">${m.name}</div>
           <div class="price">${m.price.toLocaleString()}원</div>
@@ -1330,8 +1353,10 @@ async function placeOrder() {
   const cartMenus = curRest.menus.filter(m => (cart[m.id] || 0) > 0);
   if (cartMenus.length === 0) return;
 
-  const sub   = cartMenus.reduce((s, m) => s + cart[m.id] * m.price, 0);
-  const total = sub + curRest.fee;
+  const sub      = cartMenus.reduce((s, m) => s + cart[m.id] * m.price, 0);
+  const total    = sub + curRest.fee;
+  const restName = curRest.name;
+  const menuText = cartMenus.map(m => `${m.name} ×${cart[m.id]}`).join(', ');
 
   nav('loading');
 
@@ -1351,7 +1376,20 @@ async function placeOrder() {
     }
   }
 
+  shareOrderToFriends(restName, menuText, total);
   setTimeout(() => showComplete(savedAmount, orderCount), 2500);
+}
+
+async function shareOrderToFriends(restName, menuText, totalAmount) {
+  if (!socket?.connected || !token) return;
+  try {
+    const friends = await api('GET', '/api/friends');
+    if (friends.length === 0) return;
+    const text = `🛵 배달 참았어요!\n[${restName}] ${menuText}\n💰 ${totalAmount.toLocaleString()}원 절약!`;
+    friends.forEach(f => {
+      socket.emit('send_message', { toUserId: f.id, text });
+    });
+  } catch { /* 무시 */ }
 }
 
 function showComplete(saved, count) {
