@@ -6,20 +6,21 @@
   <title>YUMYUM 🛵</title>
   <style>
     :root {
-      --mint: #1DC9A0;
-      --mint-dark: #17A882;
-      --mint-light: #E8F9F4;
-      --text: #1A1A2E;
-      --text-sub: #6B7280;
-      --bg: #F5F5F5;
-      --card-shadow: 0 2px 12px rgba(0,0,0,0.08);
+  
+    --mint: #85c1e9;        
+    --mint-dark: #5dade2;   
+    --mint-light: #f4f9fd; 
+    --text: #34495e;        
+    --text-sub: #aab7b8;    
+    --bg: #ffffff;          
+    --card-shadow: 0 4px 10px rgba(133, 193, 233, 0.2); 
     }
 
     * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 
     body {
       font-family: -apple-system, 'Noto Sans KR', sans-serif;
-      background: #C8D6DF;
+      background: var(--bg);
       display: flex;
       justify-content: center;
       align-items: center;
@@ -193,7 +194,7 @@
 
     /* 안내 배너 */
     .banner {
-      background: linear-gradient(135deg, #17A882, #0EA5E9);
+      background: linear-gradient(135deg, #a8d5f2 0%, #2e86c1 100%);
       border-radius: 18px; padding: 20px;
       color: white; margin-bottom: 22px;
     }
@@ -464,7 +465,7 @@
       color: white; font-size: 14px; font-weight: 700;
       padding: 8px 16px; cursor: pointer; font-family: inherit;
     }
-    .friends-body { padding: 0 16px 16px; }
+    .friends-body { padding: 20px 16px 16px; }
     .friends-empty {
       text-align: center; padding: 60px 20px;
       color: var(--text-sub); font-size: 15px;
@@ -1589,10 +1590,10 @@ if (window.location.protocol === 'file:') {
       <div style="font-size:56px;margin-bottom:20px">🛵</div>
       <h2 style="font-size:20px;font-weight:800;margin-bottom:12px;color:#1A1A2E">서버를 통해 접속해주세요</h2>
       <p style="font-size:14px;color:#6B7280;line-height:1.7;margin-bottom:28px">이 파일을 직접 열면 서버와 연결되지 않아요.<br>터미널에서 서버를 실행한 뒤 아래 주소로 접속해주세요.</p>
-      <div style="background:#1DC9A0;color:white;border-radius:14px;padding:14px 24px;font-size:15px;font-weight:700;margin-bottom:16px;cursor:pointer;user-select:all" onclick="navigator.clipboard?.writeText('http://localhost:3000').then(()=>this.textContent='✓ 복사됨!').catch(()=>{})">
+      <div style="background:var(--mint);color:white;border-radius:14px;padding:14px 24px;font-size:15px;font-weight:700;margin-bottom:16px;cursor:pointer;user-select:all" onclick="navigator.clipboard?.writeText('http://localhost:3000').then(()=>this.textContent='✓ 복사됨!').catch(()=>{})">
         http://localhost:3000
       </div>
-      <p style="font-size:12px;color:#9CA3AF">서버가 꺼져 있다면 터미널에서:<br><code style="background:#E5E7EB;padding:2px 8px;border-radius:6px">node server.js</code></p>
+      <p style="font-size:12px;color:#9CA3AF">서버가 꺼져 있다면 터미널에서:<br><code style="background:var(--mint-light);padding:2px 8px;border-radius:6px">node server.js</code></p>
     </div>
   `;
 } else {
