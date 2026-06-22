@@ -1,0 +1,727 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>배달말고 🛵</title>
+  <style>
+    :root {
+      --mint: #1DC9A0;
+      --mint-dark: #17A882;
+      --mint-light: #E8F9F4;
+      --text: #1A1A2E;
+      --text-sub: #6B7280;
+      --bg: #F5F5F5;
+      --card-shadow: 0 2px 12px rgba(0,0,0,0.08);
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+    body {
+      font-family: -apple-system, 'Noto Sans KR', sans-serif;
+      background: #C8D6DF;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+    }
+
+    /* ── 폰 프레임 ── */
+    #app {
+      width: 390px;
+      height: 844px;
+      background: var(--bg);
+      position: relative;
+      overflow: hidden;
+      border-radius: 44px;
+      box-shadow: 0 30px 80px rgba(0,0,0,0.35);
+    }
+
+    /* ── 화면 전환 ── */
+    .screen {
+      position: absolute;
+      inset: 0;
+      overflow-y: auto;
+      overflow-x: hidden;
+      transform: translateX(100%);
+      transition: transform 0.32s cubic-bezier(0.4,0,0.2,1);
+      background: var(--bg);
+    }
+    .screen::-webkit-scrollbar { display: none; }
+    .screen.active  { transform: translateX(0); }
+    .screen.behind  { transform: translateX(-25%); }
+
+    /* ── 공통 컴포넌트 ── */
+    .back-btn {
+      width: 38px; height: 38px;
+      background: white; border: none; border-radius: 50%;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+      font-size: 18px; cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+    }
+
+    .primary-btn {
+      background: var(--mint); color: white; border: none;
+      border-radius: 14px; padding: 14px 22px;
+      font-size: 16px; font-weight: 700; cursor: pointer;
+      transition: background 0.15s;
+    }
+    .primary-btn:active  { background: var(--mint-dark); }
+    .primary-btn:disabled { background: #CCC; cursor: not-allowed; }
+
+    .bottom-bar {
+      position: sticky; bottom: 0;
+      background: white; border-top: 1px solid #EFEFEF;
+      padding: 14px 20px;
+      display: flex; align-items: center; justify-content: space-between;
+      z-index: 50;
+    }
+
+    .total-label { font-size: 12px; color: var(--text-sub); }
+    .total-price { font-size: 20px; font-weight: 800; color: var(--text); }
+
+    /* ════════════════════════════
+       홈 화면
+    ════════════════════════════ */
+    .home-header {
+      background: var(--mint);
+      padding: 52px 18px 18px;
+    }
+
+    .home-top {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 16px;
+    }
+
+    .addr-wrap { text-align: center; }
+    .addr-label { font-size: 11px; color: rgba(255,255,255,0.75); }
+    .addr-name  { font-size: 19px; font-weight: 700; color: white; }
+
+    .cart-icon-btn {
+      width: 42px; height: 42px;
+      background: rgba(255,255,255,0.22); border: none; border-radius: 13px;
+      font-size: 20px; cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+    }
+
+    .search-box {
+      background: white; border-radius: 14px;
+      padding: 12px 16px;
+      display: flex; align-items: center; gap: 8px;
+      color: var(--text-sub); font-size: 14px;
+    }
+
+    .home-body { padding: 16px; }
+
+    /* 안내 배너 */
+    .banner {
+      background: linear-gradient(135deg, #17A882, #0EA5E9);
+      border-radius: 18px; padding: 20px;
+      color: white; margin-bottom: 22px;
+    }
+    .banner h2 { font-size: 18px; margin-bottom: 6px; }
+    .banner p  { font-size: 13px; opacity: .9; line-height: 1.55; }
+    .banner-tags { display: flex; flex-wrap: wrap; gap: 7px; margin-top: 12px; }
+    .banner-tag {
+      background: rgba(255,255,255,0.2); border-radius: 20px;
+      padding: 4px 11px; font-size: 12px;
+    }
+
+    .section-head { margin-bottom: 12px; }
+    .section-head h3 { font-size: 18px; font-weight: 700; }
+    .section-head p  { font-size: 13px; color: var(--text-sub); margin-top: 2px; }
+
+    /* 식당 카드 */
+    .rest-card {
+      background: white; border-radius: 16px; overflow: hidden;
+      margin-bottom: 12px; box-shadow: var(--card-shadow);
+      cursor: pointer; transition: transform 0.12s;
+    }
+    .rest-card:active { transform: scale(0.98); }
+
+    .rest-thumb {
+      height: 155px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 64px;
+    }
+
+    .rest-info { padding: 13px 15px; }
+    .rest-info h4 { font-size: 16px; font-weight: 700; margin-bottom: 6px; }
+    .rest-meta { display: flex; gap: 10px; font-size: 13px; color: var(--text-sub); }
+
+    /* ════════════════════════════
+       식당 메뉴 화면
+    ════════════════════════════ */
+    .rest-hero {
+      height: 190px;
+      display: flex; align-items: center; justify-content: center;
+      position: relative; font-size: 80px;
+    }
+
+    .rest-hero .back-btn { position: absolute; top: 52px; left: 16px; }
+
+    .rest-info-bar {
+      background: white; padding: 16px 18px;
+      border-bottom: 1px solid #F2F2F2;
+    }
+    .rest-info-bar h2 { font-size: 20px; font-weight: 700; margin-bottom: 6px; }
+
+    .menu-group-title {
+      font-size: 14px; font-weight: 700; color: var(--text-sub);
+      padding: 14px 18px 6px; background: var(--bg);
+      text-transform: uppercase; letter-spacing: .5px;
+    }
+
+    .menu-item {
+      background: white; padding: 15px 18px;
+      display: flex; align-items: center; gap: 13px;
+      border-bottom: 1px solid #F8F8F8;
+    }
+
+    .menu-emoji-box {
+      width: 58px; height: 58px;
+      background: var(--bg); border-radius: 12px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 36px; flex-shrink: 0;
+    }
+
+    .menu-detail { flex: 1; }
+    .menu-detail .name  { font-size: 15px; font-weight: 600; margin-bottom: 4px; }
+    .menu-detail .price { font-size: 14px; font-weight: 700; color: var(--mint-dark); }
+
+    .qty-ctrl { display: flex; align-items: center; gap: 9px; }
+    .qty-btn {
+      width: 30px; height: 30px; border-radius: 50%;
+      border: 2px solid var(--mint);
+      background: white; color: var(--mint);
+      font-size: 17px; font-weight: 700; cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      transition: all 0.12s;
+    }
+    .qty-btn:active { background: var(--mint); color: white; }
+    .qty-num { font-size: 16px; font-weight: 700; min-width: 18px; text-align: center; }
+
+    /* ════════════════════════════
+       장바구니 화면
+    ════════════════════════════ */
+    .cart-header {
+      background: white; padding: 52px 18px 16px;
+      display: flex; align-items: center; gap: 12px;
+      border-bottom: 1px solid #F2F2F2;
+    }
+    .cart-header h2 { font-size: 18px; font-weight: 700; }
+
+    .cart-item {
+      background: white; padding: 15px 18px;
+      display: flex; align-items: center; gap: 12px;
+      border-bottom: 1px solid #F8F8F8;
+    }
+    .cart-item .name  { font-size: 15px; font-weight: 600; }
+    .cart-item .price { font-size: 13px; color: var(--text-sub); margin-top: 3px; }
+    .del-btn { background: none; border: none; color: #CCC; font-size: 19px; cursor: pointer; }
+
+    .empty-cart {
+      text-align: center; padding: 60px 20px;
+      color: var(--text-sub); font-size: 15px;
+    }
+    .empty-cart .big { font-size: 48px; margin-bottom: 14px; }
+
+    .summary-box {
+      background: white; margin: 12px 16px; border-radius: 16px; padding: 16px;
+    }
+    .sum-row {
+      display: flex; justify-content: space-between;
+      font-size: 14px; color: var(--text-sub); margin-bottom: 9px;
+    }
+    .sum-row.total {
+      color: var(--text); font-weight: 700; font-size: 16px;
+      border-top: 1px solid #EEE; padding-top: 10px; margin-top: 2px;
+    }
+
+    /* 결제 수단 */
+    .pay-section {
+      background: white; margin: 0 16px 16px; border-radius: 16px; padding: 16px;
+    }
+    .pay-section h3 { font-size: 15px; font-weight: 700; margin-bottom: 12px; }
+    .pay-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+
+    .pay-opt {
+      border: 2px solid #E0E0E0; border-radius: 12px;
+      padding: 11px 8px; text-align: center; cursor: pointer;
+      font-size: 13px; font-weight: 600; color: var(--text-sub);
+      transition: all 0.13s;
+    }
+    .pay-opt.on {
+      border-color: var(--mint); background: var(--mint-light); color: var(--mint-dark);
+    }
+
+    /* ════════════════════════════
+       로딩 화면
+    ════════════════════════════ */
+    #screen-loading {
+      background: var(--mint);
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      gap: 20px; color: white;
+    }
+
+    .moto { font-size: 64px; animation: bounce 0.8s ease infinite; }
+    @keyframes bounce {
+      0%,100% { transform: translateY(0); }
+      50%      { transform: translateY(-14px); }
+    }
+
+    .spinner {
+      width: 52px; height: 52px;
+      border: 5px solid rgba(255,255,255,0.3);
+      border-top-color: white;
+      border-radius: 50%;
+      animation: spin 0.75s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .loading-txt   { font-size: 20px; font-weight: 700; }
+    .loading-sub   { font-size: 13px; opacity: .75; }
+
+    /* ════════════════════════════
+       완료 화면
+    ════════════════════════════ */
+    .complete-hero {
+      background: linear-gradient(135deg, var(--mint), #0EA5E9);
+      padding: 64px 28px 36px; text-align: center; color: white;
+    }
+    .complete-hero .big-emoji { font-size: 72px; margin-bottom: 14px; }
+    .complete-hero h2 { font-size: 26px; font-weight: 800; margin-bottom: 6px; }
+    .complete-hero p  { font-size: 15px; opacity: .9; }
+
+    .stats-card {
+      background: white; margin: 14px 16px; border-radius: 20px;
+      padding: 18px; box-shadow: var(--card-shadow);
+    }
+    .stats-card h3 {
+      text-align: center; font-size: 13px; color: var(--text-sub);
+      margin-bottom: 14px; font-weight: 600;
+    }
+    .stat-row { display: flex; justify-content: space-around; }
+    .stat-item { text-align: center; }
+    .stat-val   { font-size: 26px; font-weight: 800; color: var(--mint-dark); }
+    .stat-lbl   { font-size: 12px; color: var(--text-sub); margin-top: 3px; }
+
+    .motive-card {
+      background: linear-gradient(135deg, #FF6B35, #FF9A3C);
+      margin: 0 16px 14px; border-radius: 18px;
+      padding: 18px 20px; color: white; text-align: center;
+      font-size: 15px; font-weight: 700; line-height: 1.6;
+    }
+
+    .again-btn {
+      display: block; width: calc(100% - 32px);
+      margin: 0 16px 32px;
+      background: var(--mint); color: white; border: none;
+      border-radius: 16px; padding: 16px;
+      font-size: 17px; font-weight: 700; cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+<div id="app">
+
+  <!-- ══════════ 홈 화면 ══════════ -->
+  <div id="screen-home" class="screen active">
+    <div class="home-header">
+      <div class="home-top">
+        <div style="width:42px"></div>
+        <div class="addr-wrap">
+          <div class="addr-label">배달 주소</div>
+          <div class="addr-name">우리집 ▾</div>
+        </div>
+        <button class="cart-icon-btn" onclick="nav('cart')">🛒</button>
+      </div>
+      <div class="search-box">🔍 음식점이나 메뉴를 검색해보세요</div>
+    </div>
+
+    <div class="home-body">
+      <div class="banner">
+        <h2>오늘은 뭘 먹을까요?</h2>
+        <p>배달 충동 해소 전용 앱이에요.<br>주문 흐름을 전부 체험하지만 실제 주문·결제는 없어요 😊</p>
+        <div class="banner-tags">
+          <span class="banner-tag">실제 결제 없음</span>
+          <span class="banner-tag">실제 주문 없음</span>
+          <span class="banner-tag">모바일 UI 데모</span>
+        </div>
+      </div>
+
+      <div class="section-head">
+        <h3>추천 맛집</h3>
+        <p>메뉴를 담아 주문 흐름을 체험해보세요.</p>
+      </div>
+
+      <div id="rest-list"></div>
+    </div>
+  </div>
+
+  <!-- ══════════ 식당 메뉴 화면 ══════════ -->
+  <div id="screen-restaurant" class="screen">
+    <div id="rest-hero" class="rest-hero">
+      <button class="back-btn" onclick="back()">←</button>
+    </div>
+    <div class="rest-info-bar">
+      <h2 id="rest-name"></h2>
+      <div id="rest-meta" class="rest-meta"></div>
+    </div>
+    <div id="menu-list"></div>
+    <div style="height:90px"></div>
+    <div class="bottom-bar">
+      <div>
+        <div class="total-label">총 결제예상금액</div>
+        <div class="total-price" id="rest-total">0원</div>
+      </div>
+      <button class="primary-btn" id="to-cart-btn" onclick="nav('cart')" disabled>장바구니 담기</button>
+    </div>
+  </div>
+
+  <!-- ══════════ 장바구니 화면 ══════════ -->
+  <div id="screen-cart" class="screen">
+    <div class="cart-header">
+      <button class="back-btn" onclick="back()">←</button>
+      <h2>장바구니</h2>
+    </div>
+    <div id="cart-items"></div>
+    <div id="order-summary"></div>
+    <div class="pay-section">
+      <h3>결제 수단</h3>
+      <div class="pay-grid">
+        <div class="pay-opt on"  onclick="selectPay(this)">💳 신용카드</div>
+        <div class="pay-opt"     onclick="selectPay(this)">📱 카카오페이</div>
+        <div class="pay-opt"     onclick="selectPay(this)">🏦 계좌이체</div>
+        <div class="pay-opt"     onclick="selectPay(this)">💵 현금</div>
+      </div>
+    </div>
+    <div style="height:90px"></div>
+    <div class="bottom-bar">
+      <div>
+        <div class="total-label">총 결제예상금액</div>
+        <div class="total-price" id="cart-total">0원</div>
+      </div>
+      <button class="primary-btn" onclick="placeOrder()">데모 주문하기</button>
+    </div>
+  </div>
+
+  <!-- ══════════ 로딩 화면 ══════════ -->
+  <div id="screen-loading" class="screen">
+    <div class="moto">🛵</div>
+    <div class="spinner"></div>
+    <div class="loading-txt">주문 처리 중...</div>
+    <div class="loading-sub">실제 주문은 되지 않아요!</div>
+  </div>
+
+  <!-- ══════════ 완료 화면 ══════════ -->
+  <div id="screen-complete" class="screen">
+    <div class="complete-hero">
+      <div class="big-emoji">🎉</div>
+      <h2>욕구 해소 완료!</h2>
+      <p>오늘도 배달 충동을 이겨냈어요</p>
+    </div>
+    <div class="stats-card">
+      <h3>오늘의 절약 리포트</h3>
+      <div class="stat-row">
+        <div class="stat-item">
+          <div class="stat-val" id="stat-saved">0원</div>
+          <div class="stat-lbl">절약한 금액</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-val" id="stat-count">0회</div>
+          <div class="stat-lbl">참은 주문 수</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-val" id="stat-coffee">0잔</div>
+          <div class="stat-lbl">커피값 환산</div>
+        </div>
+      </div>
+    </div>
+    <div class="motive-card" id="motive-text"></div>
+    <button class="again-btn" onclick="goHome()">처음으로 돌아가기</button>
+  </div>
+
+</div>
+
+<script>
+// ════════════════════════════
+// 데이터
+// ════════════════════════════
+const RESTAURANTS = [
+  {
+    id: 1, name: '치킨마루', emoji: '🍗', bg: '#FFF3E0',
+    rating: 4.9, time: '25~35분', fee: 2500,
+    menus: [
+      { id: 11, name: '후라이드 치킨',  price: 18000, emoji: '🍗' },
+      { id: 12, name: '양념 치킨',      price: 19000, emoji: '🍗' },
+      { id: 13, name: '반반 치킨',      price: 20000, emoji: '🍗' },
+      { id: 14, name: '콜라 1.5L',     price:  3000, emoji: '🥤' },
+    ]
+  },
+  {
+    id: 2, name: '피자팰리스', emoji: '🍕', bg: '#FFEBEE',
+    rating: 4.7, time: '30~40분', fee: 0,
+    menus: [
+      { id: 21, name: '포테이토 피자',  price: 22000, emoji: '🍕' },
+      { id: 22, name: '불고기 피자',    price: 24000, emoji: '🍕' },
+      { id: 23, name: '치즈 피자',      price: 20000, emoji: '🧀' },
+      { id: 24, name: '콘수프',         price:  4000, emoji: '🥣' },
+    ]
+  },
+  {
+    id: 3, name: '스시히로', emoji: '🍱', bg: '#E8F5E9',
+    rating: 4.8, time: '35~45분', fee: 3000,
+    menus: [
+      { id: 31, name: '연어초밥 세트',  price: 32000, emoji: '🍣' },
+      { id: 32, name: '참치초밥 세트',  price: 28000, emoji: '🍣' },
+      { id: 33, name: '우동',           price: 12000, emoji: '🍜' },
+      { id: 34, name: '미소국',         price:  3000, emoji: '🥣' },
+    ]
+  },
+  {
+    id: 4, name: '버거브로스', emoji: '🍔', bg: '#F3E5F5',
+    rating: 4.6, time: '20~30분', fee: 1500,
+    menus: [
+      { id: 41, name: '클래식 버거',    price:  8900, emoji: '🍔' },
+      { id: 42, name: '더블 치즈버거',  price: 11900, emoji: '🍔' },
+      { id: 43, name: '감자튀김 L',     price:  4500, emoji: '🍟' },
+      { id: 44, name: '콜라 M',         price:  2500, emoji: '🥤' },
+    ]
+  },
+];
+
+const MOTIVES = [
+  '💪 대단해요! 배달 충동을 이겨냈어요.',
+  '🌟 절약의 고수! 이 돈으로 뭘 살까요?',
+  '🏆 오늘도 지갑을 지켰어요!',
+  '😤 의지력 +1! 내일도 할 수 있어요!',
+  '🌱 건강한 식습관을 향해 한 걸음씩!',
+];
+
+// ════════════════════════════
+// 상태
+// ════════════════════════════
+let cart    = {};        // { menuId: qty }
+let curRest = null;      // 현재 식당 객체
+let history = ['home'];  // 화면 이동 기록
+let savedTotal = 0;
+let orderCount = 0;
+
+// ════════════════════════════
+// 화면 전환
+// ════════════════════════════
+function nav(id) {
+  if (id === 'cart') renderCart();
+
+  const curId  = history[history.length - 1];
+  if (curId === id) return;
+
+  document.getElementById('screen-' + curId).classList.add('behind');
+  document.getElementById('screen-' + id).classList.add('active');
+  history.push(id);
+}
+
+function back() {
+  if (history.length <= 1) return;
+  const curId  = history.pop();
+  const prevId = history[history.length - 1];
+
+  document.getElementById('screen-' + curId).classList.remove('active');
+  document.getElementById('screen-' + prevId).classList.remove('behind');
+}
+
+function showOnly(id) {
+  document.querySelectorAll('.screen').forEach(s =>
+    s.classList.remove('active', 'behind')
+  );
+  document.getElementById('screen-' + id).classList.add('active');
+  history = [id];
+}
+
+// ════════════════════════════
+// 홈
+// ════════════════════════════
+function renderHome() {
+  document.getElementById('rest-list').innerHTML = RESTAURANTS.map(r => `
+    <div class="rest-card" onclick="openRest(${r.id})">
+      <div class="rest-thumb" style="background:${r.bg}">${r.emoji}</div>
+      <div class="rest-info">
+        <h4>${r.name}</h4>
+        <div class="rest-meta">
+          <span>⭐ ${r.rating}</span>
+          <span>🕐 ${r.time}</span>
+          <span>🚴 ${r.fee === 0 ? '무료배달' : r.fee.toLocaleString() + '원'}</span>
+        </div>
+      </div>
+    </div>
+  `).join('');
+}
+
+// ════════════════════════════
+// 식당 메뉴
+// ════════════════════════════
+function openRest(id) {
+  curRest = RESTAURANTS.find(r => r.id === id);
+  renderRestScreen();
+  nav('restaurant');
+}
+
+function renderRestScreen() {
+  const r = curRest;
+
+  // 헤더
+  const hero = document.getElementById('rest-hero');
+  hero.style.background = r.bg;
+  hero.innerHTML = `
+    <button class="back-btn" onclick="back()">←</button>
+    <span style="font-size:80px">${r.emoji}</span>
+  `;
+
+  document.getElementById('rest-name').textContent = r.name;
+  document.getElementById('rest-meta').innerHTML = `
+    <span>⭐ ${r.rating}</span>
+    <span>🕐 ${r.time}</span>
+    <span>🚴 ${r.fee === 0 ? '무료배달' : r.fee.toLocaleString() + '원'}</span>
+  `;
+
+  // 메뉴 목록
+  document.getElementById('menu-list').innerHTML =
+    `<div class="menu-group-title">메뉴</div>` +
+    r.menus.map(m => `
+      <div class="menu-item">
+        <div class="menu-emoji-box">${m.emoji}</div>
+        <div class="menu-detail">
+          <div class="name">${m.name}</div>
+          <div class="price">${m.price.toLocaleString()}원</div>
+        </div>
+        <div class="qty-ctrl">
+          <button class="qty-btn" onclick="changeQty(${m.id},-1)">−</button>
+          <span class="qty-num" id="q${m.id}">${cart[m.id] || 0}</span>
+          <button class="qty-btn" onclick="changeQty(${m.id},+1)">+</button>
+        </div>
+      </div>
+    `).join('');
+
+  updateRestTotal();
+}
+
+function changeQty(mid, delta) {
+  const next = Math.max(0, (cart[mid] || 0) + delta);
+  if (next === 0) delete cart[mid]; else cart[mid] = next;
+  const el = document.getElementById('q' + mid);
+  if (el) el.textContent = next;
+  updateRestTotal();
+}
+
+function updateRestTotal() {
+  const subtotal = curRest.menus.reduce((s, m) => s + (cart[m.id] || 0) * m.price, 0);
+  const total = subtotal > 0 ? subtotal + curRest.fee : 0;
+  document.getElementById('rest-total').textContent = total.toLocaleString() + '원';
+  document.getElementById('to-cart-btn').disabled = total === 0;
+}
+
+// ════════════════════════════
+// 장바구니
+// ════════════════════════════
+function renderCart() {
+  const itemsEl   = document.getElementById('cart-items');
+  const summaryEl = document.getElementById('order-summary');
+
+  if (!curRest) {
+    itemsEl.innerHTML = `<div class="empty-cart"><div class="big">🛒</div>담긴 메뉴가 없어요</div>`;
+    summaryEl.innerHTML = '';
+    document.getElementById('cart-total').textContent = '0원';
+    return;
+  }
+
+  const cartMenus = curRest.menus.filter(m => (cart[m.id] || 0) > 0);
+
+  if (cartMenus.length === 0) {
+    itemsEl.innerHTML = `<div class="empty-cart"><div class="big">🛒</div>담긴 메뉴가 없어요</div>`;
+    summaryEl.innerHTML = '';
+    document.getElementById('cart-total').textContent = '0원';
+    return;
+  }
+
+  itemsEl.innerHTML = cartMenus.map(m => `
+    <div class="cart-item">
+      <span style="font-size:32px">${m.emoji}</span>
+      <div style="flex:1">
+        <div class="name">${m.name} ×${cart[m.id]}</div>
+        <div class="price">${(m.price * cart[m.id]).toLocaleString()}원</div>
+      </div>
+      <button class="del-btn" onclick="removeItem(${m.id})">✕</button>
+    </div>
+  `).join('');
+
+  const sub = cartMenus.reduce((s, m) => s + cart[m.id] * m.price, 0);
+  const fee = curRest.fee;
+  const tot = sub + fee;
+
+  summaryEl.innerHTML = `
+    <div class="summary-box">
+      <div class="sum-row"><span>주문 금액</span><span>${sub.toLocaleString()}원</span></div>
+      <div class="sum-row"><span>배달비</span><span>${fee === 0 ? '무료' : fee.toLocaleString() + '원'}</span></div>
+      <div class="sum-row total"><span>총 결제금액</span><span>${tot.toLocaleString()}원</span></div>
+    </div>
+  `;
+  document.getElementById('cart-total').textContent = tot.toLocaleString() + '원';
+}
+
+function removeItem(mid) {
+  delete cart[mid];
+  renderCart();
+  updateRestTotal();
+}
+
+function selectPay(el) {
+  document.querySelectorAll('.pay-opt').forEach(e => e.classList.remove('on'));
+  el.classList.add('on');
+}
+
+// ════════════════════════════
+// 주문
+// ════════════════════════════
+function placeOrder() {
+  if (!curRest) return;
+  const cartMenus = curRest.menus.filter(m => (cart[m.id] || 0) > 0);
+  if (cartMenus.length === 0) return;
+
+  const sub   = cartMenus.reduce((s, m) => s + cart[m.id] * m.price, 0);
+  const total = sub + curRest.fee;
+
+  savedTotal += total;
+  orderCount++;
+
+  nav('loading');
+
+  setTimeout(() => {
+    showComplete(total);
+  }, 2500);
+}
+
+function showComplete(amount) {
+  document.getElementById('stat-saved').textContent  = savedTotal.toLocaleString() + '원';
+  document.getElementById('stat-count').textContent  = orderCount + '회';
+  document.getElementById('stat-coffee').textContent = Math.floor(savedTotal / 4500) + '잔';
+  document.getElementById('motive-text').textContent =
+    MOTIVES[Math.floor(Math.random() * MOTIVES.length)];
+
+  showOnly('complete');
+}
+
+function goHome() {
+  cart    = {};
+  curRest = null;
+  showOnly('home');
+}
+
+// ════════════════════════════
+// 앱 시작
+// ════════════════════════════
+renderHome();
+</script>
+</body>
+</html>

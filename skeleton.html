@@ -1,0 +1,555 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>배달말고 🛵</title>
+  <style>
+    /* ── CSS 변수 (색상 팔레트) ── */
+    :root {
+      --mint:       #1DC9A0;
+      --mint-dark:  #17A882;
+      --mint-light: #E8F9F4;
+      --text:       #1A1A2E;
+      --text-sub:   #6B7280;
+      --bg:         #F5F5F5;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: -apple-system, 'Noto Sans KR', sans-serif;
+      background: #C8D6DF;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+    }
+
+    /* ── 폰 프레임 ── */
+    #app {
+      width: 390px;
+      height: 844px;
+      background: var(--bg);
+      position: relative;
+      overflow: hidden;
+      border-radius: 44px;
+      box-shadow: 0 30px 80px rgba(0,0,0,0.35);
+    }
+
+    /* ── 화면 슬라이드 전환 ──
+       active  = 현재 보이는 화면 (translateX 0)
+       behind  = 뒤로 밀린 화면  (translateX -25%)
+       기본값  = 오른쪽 대기     (translateX 100%)
+    */
+    .screen {
+      position: absolute;
+      inset: 0;
+      overflow-y: auto;
+      overflow-x: hidden;
+      transform: translateX(100%);
+      transition: transform 0.32s cubic-bezier(0.4,0,0.2,1);
+      background: var(--bg);
+    }
+    .screen::-webkit-scrollbar { display: none; }
+    .screen.active { transform: translateX(0); }
+    .screen.behind { transform: translateX(-25%); }
+
+    /* ── 공통 버튼 ── */
+    .back-btn {
+      width: 38px; height: 38px;
+      background: white; border: none; border-radius: 50%;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+      font-size: 18px; cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+    }
+
+    .primary-btn {
+      background: var(--mint); color: white; border: none;
+      border-radius: 14px; padding: 14px 22px;
+      font-size: 16px; font-weight: 700; cursor: pointer;
+    }
+    .primary-btn:disabled { background: #CCC; cursor: not-allowed; }
+
+    /* 하단 고정 바 */
+    .bottom-bar {
+      position: sticky; bottom: 0;
+      background: white; border-top: 1px solid #EEE;
+      padding: 14px 20px;
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .total-label { font-size: 12px; color: var(--text-sub); }
+    .total-price { font-size: 20px; font-weight: 800; }
+
+    /* ════════ 홈 화면 스타일 ════════ */
+    .home-header {
+      background: var(--mint);
+      padding: 52px 18px 18px;
+    }
+    .home-top {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 16px;
+    }
+    .addr-wrap { text-align: center; }
+    .addr-label { font-size: 11px; color: rgba(255,255,255,0.75); }
+    .addr-name  { font-size: 19px; font-weight: 700; color: white; }
+
+    .cart-icon-btn {
+      width: 42px; height: 42px;
+      background: rgba(255,255,255,0.22); border: none; border-radius: 13px;
+      font-size: 20px; cursor: pointer;
+    }
+    .search-box {
+      background: white; border-radius: 14px;
+      padding: 12px 16px;
+      color: var(--text-sub); font-size: 14px;
+    }
+    .home-body { padding: 16px; }
+
+    /* 식당 카드 */
+    .rest-card {
+      background: white; border-radius: 16px; overflow: hidden;
+      margin-bottom: 12px; box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+      cursor: pointer;
+    }
+    .rest-card:active { opacity: 0.85; }
+    .rest-thumb {
+      height: 155px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 64px;
+    }
+    .rest-info { padding: 13px 15px; }
+    .rest-info h4 { font-size: 16px; font-weight: 700; margin-bottom: 6px; }
+    .rest-meta { display: flex; gap: 10px; font-size: 13px; color: var(--text-sub); }
+
+    /* ════════ 식당 메뉴 화면 스타일 ════════ */
+    .rest-hero {
+      height: 190px;
+      display: flex; align-items: center; justify-content: center;
+      position: relative; font-size: 80px;
+    }
+    .rest-hero .back-btn { position: absolute; top: 52px; left: 16px; }
+    .rest-info-bar { background: white; padding: 16px 18px; border-bottom: 1px solid #F2F2F2; }
+    .rest-info-bar h2 { font-size: 20px; font-weight: 700; margin-bottom: 6px; }
+
+    .menu-item {
+      background: white; padding: 15px 18px;
+      display: flex; align-items: center; gap: 13px;
+      border-bottom: 1px solid #F8F8F8;
+    }
+    .menu-emoji-box {
+      width: 58px; height: 58px;
+      background: var(--bg); border-radius: 12px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 36px; flex-shrink: 0;
+    }
+    .menu-detail { flex: 1; }
+    .menu-detail .name  { font-size: 15px; font-weight: 600; margin-bottom: 4px; }
+    .menu-detail .price { font-size: 14px; font-weight: 700; color: var(--mint-dark); }
+
+    .qty-ctrl { display: flex; align-items: center; gap: 9px; }
+    .qty-btn {
+      width: 30px; height: 30px; border-radius: 50%;
+      border: 2px solid var(--mint);
+      background: white; color: var(--mint);
+      font-size: 17px; font-weight: 700; cursor: pointer;
+    }
+    .qty-num { font-size: 16px; font-weight: 700; min-width: 18px; text-align: center; }
+
+    /* ════════ 장바구니 화면 스타일 ════════ */
+    .cart-header {
+      background: white; padding: 52px 18px 16px;
+      display: flex; align-items: center; gap: 12px;
+      border-bottom: 1px solid #F2F2F2;
+    }
+    .cart-header h2 { font-size: 18px; font-weight: 700; }
+
+    .cart-item {
+      background: white; padding: 15px 18px;
+      display: flex; align-items: center; gap: 12px;
+      border-bottom: 1px solid #F8F8F8;
+    }
+    .cart-item .name  { font-size: 15px; font-weight: 600; }
+    .cart-item .price { font-size: 13px; color: var(--text-sub); margin-top: 3px; }
+    .del-btn { background: none; border: none; color: #CCC; font-size: 19px; cursor: pointer; }
+
+    .summary-box { background: white; margin: 12px 16px; border-radius: 16px; padding: 16px; }
+    .sum-row { display: flex; justify-content: space-between; font-size: 14px; color: var(--text-sub); margin-bottom: 9px; }
+    .sum-row.total { color: var(--text); font-weight: 700; font-size: 16px; border-top: 1px solid #EEE; padding-top: 10px; }
+
+    .pay-section { background: white; margin: 0 16px 16px; border-radius: 16px; padding: 16px; }
+    .pay-section h3 { font-size: 15px; font-weight: 700; margin-bottom: 12px; }
+    .pay-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+    .pay-opt {
+      border: 2px solid #E0E0E0; border-radius: 12px;
+      padding: 11px 8px; text-align: center; cursor: pointer;
+      font-size: 13px; font-weight: 600; color: var(--text-sub);
+    }
+    .pay-opt.on { border-color: var(--mint); background: var(--mint-light); color: var(--mint-dark); }
+
+    /* ════════ 로딩 화면 스타일 ════════ */
+    #screen-loading {
+      background: var(--mint);
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      gap: 20px; color: white;
+    }
+    .moto    { font-size: 64px; animation: bounce 0.8s ease infinite; }
+    .spinner { width: 52px; height: 52px; border: 5px solid rgba(255,255,255,0.3); border-top-color: white; border-radius: 50%; animation: spin 0.75s linear infinite; }
+    @keyframes bounce { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-14px)} }
+    @keyframes spin   { to{transform:rotate(360deg)} }
+
+    /* ════════ 완료 화면 스타일 ════════ */
+    .complete-hero { background: linear-gradient(135deg, var(--mint), #0EA5E9); padding: 64px 28px 36px; text-align: center; color: white; }
+    .complete-hero .big-emoji { font-size: 72px; margin-bottom: 14px; }
+    .complete-hero h2 { font-size: 26px; font-weight: 800; margin-bottom: 6px; }
+    .stats-card { background: white; margin: 14px 16px; border-radius: 20px; padding: 18px; box-shadow: 0 2px 12px rgba(0,0,0,0.08); }
+    .stats-card h3 { text-align: center; font-size: 13px; color: var(--text-sub); margin-bottom: 14px; }
+    .stat-row { display: flex; justify-content: space-around; }
+    .stat-item { text-align: center; }
+    .stat-val { font-size: 26px; font-weight: 800; color: var(--mint-dark); }
+    .stat-lbl { font-size: 12px; color: var(--text-sub); margin-top: 3px; }
+    .motive-card { background: linear-gradient(135deg, #FF6B35, #FF9A3C); margin: 0 16px 14px; border-radius: 18px; padding: 18px 20px; color: white; text-align: center; font-size: 15px; font-weight: 700; line-height: 1.6; }
+    .again-btn { display: block; width: calc(100% - 32px); margin: 0 16px 32px; background: var(--mint); color: white; border: none; border-radius: 16px; padding: 16px; font-size: 17px; font-weight: 700; cursor: pointer; }
+  </style>
+</head>
+<body>
+<div id="app">
+
+  <!-- ════════ 홈 화면 ════════ -->
+  <div id="screen-home" class="screen active">
+    <div class="home-header">
+      <div class="home-top">
+        <div style="width:42px"></div>
+        <div class="addr-wrap">
+          <div class="addr-label">배달 주소</div>
+          <div class="addr-name">우리집 ▾</div>
+        </div>
+        <!-- TODO: 클릭 시 장바구니 화면으로 이동 -->
+        <button class="cart-icon-btn" onclick="nav('cart')">🛒</button>
+      </div>
+      <div class="search-box">🔍 음식점이나 메뉴를 검색해보세요</div>
+    </div>
+
+    <div class="home-body">
+      <!-- TODO: renderHome()으로 식당 카드 목록을 여기에 채워넣기 -->
+      <div id="rest-list"></div>
+    </div>
+  </div>
+
+  <!-- ════════ 식당 메뉴 화면 ════════ -->
+  <div id="screen-restaurant" class="screen">
+    <!-- TODO: openRest(id) 호출 시 curRest에 맞게 내용 채우기 -->
+    <div id="rest-hero" class="rest-hero">
+      <button class="back-btn" onclick="back()">←</button>
+      <!-- 식당 이모지가 여기에 들어감 -->
+    </div>
+
+    <div class="rest-info-bar">
+      <h2 id="rest-name">식당 이름</h2>
+      <div id="rest-meta" class="rest-meta">평점 · 시간 · 배달비</div>
+    </div>
+
+    <!-- TODO: 메뉴 아이템들을 renderRestScreen()으로 여기에 채우기 -->
+    <div id="menu-list"></div>
+
+    <div style="height:90px"></div>
+    <div class="bottom-bar">
+      <div>
+        <div class="total-label">총 결제예상금액</div>
+        <div class="total-price" id="rest-total">0원</div>
+      </div>
+      <!-- TODO: cart가 비어있으면 disabled 처리 -->
+      <button class="primary-btn" id="to-cart-btn" onclick="nav('cart')" disabled>장바구니 담기</button>
+    </div>
+  </div>
+
+  <!-- ════════ 장바구니 화면 ════════ -->
+  <div id="screen-cart" class="screen">
+    <div class="cart-header">
+      <button class="back-btn" onclick="back()">←</button>
+      <h2>장바구니</h2>
+    </div>
+
+    <!-- TODO: renderCart()로 선택된 메뉴 목록 채우기 -->
+    <div id="cart-items"></div>
+    <div id="order-summary"></div>
+
+    <div class="pay-section">
+      <h3>결제 수단</h3>
+      <div class="pay-grid">
+        <div class="pay-opt on"  onclick="selectPay(this)">💳 신용카드</div>
+        <div class="pay-opt"     onclick="selectPay(this)">📱 카카오페이</div>
+        <div class="pay-opt"     onclick="selectPay(this)">🏦 계좌이체</div>
+        <div class="pay-opt"     onclick="selectPay(this)">💵 현금</div>
+      </div>
+    </div>
+
+    <div style="height:90px"></div>
+    <div class="bottom-bar">
+      <div>
+        <div class="total-label">총 결제예상금액</div>
+        <div class="total-price" id="cart-total">0원</div>
+      </div>
+      <button class="primary-btn" onclick="placeOrder()">데모 주문하기</button>
+    </div>
+  </div>
+
+  <!-- ════════ 로딩 화면 ════════ -->
+  <div id="screen-loading" class="screen">
+    <div class="moto">🛵</div>
+    <div class="spinner"></div>
+    <div style="font-size:20px;font-weight:700;">주문 처리 중...</div>
+    <div style="font-size:13px;opacity:.75;">실제 주문은 되지 않아요!</div>
+  </div>
+
+  <!-- ════════ 완료 화면 ════════ -->
+  <div id="screen-complete" class="screen">
+    <div class="complete-hero">
+      <div class="big-emoji">🎉</div>
+      <h2>욕구 해소 완료!</h2>
+      <p>오늘도 배달 충동을 이겨냈어요</p>
+    </div>
+
+    <div class="stats-card">
+      <h3>오늘의 절약 리포트</h3>
+      <div class="stat-row">
+        <!-- TODO: 주문 완료 시 통계 업데이트 -->
+        <div class="stat-item">
+          <div class="stat-val" id="stat-saved">0원</div>
+          <div class="stat-lbl">절약한 금액</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-val" id="stat-count">0회</div>
+          <div class="stat-lbl">참은 주문 수</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-val" id="stat-coffee">0잔</div>
+          <div class="stat-lbl">커피값 환산</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="motive-card" id="motive-text">💪 대단해요! 배달 충동을 이겨냈어요.</div>
+
+    <button class="again-btn" onclick="goHome()">처음으로 돌아가기</button>
+  </div>
+
+</div>
+
+<script>
+// ════════════════════════════════════
+//  데이터 — 식당 & 메뉴
+// ════════════════════════════════════
+const RESTAURANTS = [
+  {
+    id: 1, name: '치킨마루', emoji: '🍗', bg: '#FFF3E0',
+    rating: 4.9, time: '25~35분', fee: 2500,
+    menus: [
+      { id: 11, name: '후라이드 치킨', price: 18000, emoji: '🍗' },
+      { id: 12, name: '양념 치킨',     price: 19000, emoji: '🍗' },
+      { id: 13, name: '반반 치킨',     price: 20000, emoji: '🍗' },
+      { id: 14, name: '콜라 1.5L',    price:  3000, emoji: '🥤' },
+    ]
+  },
+  {
+    id: 2, name: '피자팰리스', emoji: '🍕', bg: '#FFEBEE',
+    rating: 4.7, time: '30~40분', fee: 0,
+    menus: [
+      { id: 21, name: '포테이토 피자', price: 22000, emoji: '🍕' },
+      { id: 22, name: '불고기 피자',   price: 24000, emoji: '🍕' },
+      { id: 23, name: '치즈 피자',     price: 20000, emoji: '🧀' },
+      { id: 24, name: '콘수프',        price:  4000, emoji: '🥣' },
+    ]
+  },
+  {
+    id: 3, name: '스시히로', emoji: '🍱', bg: '#E8F5E9',
+    rating: 4.8, time: '35~45분', fee: 3000,
+    menus: [
+      { id: 31, name: '연어초밥 세트', price: 32000, emoji: '🍣' },
+      { id: 32, name: '참치초밥 세트', price: 28000, emoji: '🍣' },
+      { id: 33, name: '우동',          price: 12000, emoji: '🍜' },
+      { id: 34, name: '미소국',        price:  3000, emoji: '🥣' },
+    ]
+  },
+  {
+    id: 4, name: '버거브로스', emoji: '🍔', bg: '#F3E5F5',
+    rating: 4.6, time: '20~30분', fee: 1500,
+    menus: [
+      { id: 41, name: '클래식 버거',   price:  8900, emoji: '🍔' },
+      { id: 42, name: '더블 치즈버거', price: 11900, emoji: '🍔' },
+      { id: 43, name: '감자튀김 L',    price:  4500, emoji: '🍟' },
+      { id: 44, name: '콜라 M',        price:  2500, emoji: '🥤' },
+    ]
+  },
+];
+
+const MOTIVES = [
+  '💪 대단해요! 배달 충동을 이겨냈어요.',
+  '🌟 절약의 고수! 이 돈으로 뭘 살까요?',
+  '🏆 오늘도 지갑을 지켰어요!',
+  '😤 의지력 +1! 내일도 할 수 있어요!',
+  '🌱 건강한 식습관을 향해 한 걸음씩!',
+];
+
+// ════════════════════════════════════
+//  상태 변수
+// ════════════════════════════════════
+let cart       = {};   // { menuId: 수량 }  ex) { 11: 2, 14: 1 }
+let curRest    = null; // 현재 선택된 식당 객체
+let history    = ['home']; // 화면 이동 스택
+let savedTotal = 0;    // 누적 절약 금액
+let orderCount = 0;    // 주문 참은 횟수
+
+// ════════════════════════════════════
+//  화면 전환 함수 (건드리지 않아도 됨)
+// ════════════════════════════════════
+
+// 앞으로 이동
+function nav(id) {
+  if (id === 'cart') renderCart(); // 장바구니 화면 열 때마다 새로 그리기
+
+  const curId = history[history.length - 1];
+  if (curId === id) return;
+
+  document.getElementById('screen-' + curId).classList.add('behind');
+  document.getElementById('screen-' + id).classList.add('active');
+  history.push(id);
+}
+
+// 뒤로 이동
+function back() {
+  if (history.length <= 1) return;
+  const curId  = history.pop();
+  const prevId = history[history.length - 1];
+
+  document.getElementById('screen-' + curId).classList.remove('active');
+  document.getElementById('screen-' + prevId).classList.remove('behind');
+}
+
+// 특정 화면만 표시 (로딩→완료 전환 등에 사용)
+function showOnly(id) {
+  document.querySelectorAll('.screen').forEach(s =>
+    s.classList.remove('active', 'behind')
+  );
+  document.getElementById('screen-' + id).classList.add('active');
+  history = [id];
+}
+
+// 결제수단 선택
+function selectPay(el) {
+  document.querySelectorAll('.pay-opt').forEach(e => e.classList.remove('on'));
+  el.classList.add('on');
+}
+
+// ════════════════════════════════════
+//  TODO: 아래 함수들을 직접 구현하세요!
+// ════════════════════════════════════
+
+/*
+  [1] 홈 화면에 식당 카드 목록 그리기
+  - RESTAURANTS 배열을 순회하며 HTML 생성
+  - 카드 클릭 시 openRest(id) 호출
+  - document.getElementById('rest-list').innerHTML 에 삽입
+*/
+function renderHome() {
+  // TODO
+}
+
+/*
+  [2] 식당 화면 열기
+  - id로 RESTAURANTS에서 해당 식당 찾아 curRest에 저장
+  - renderRestScreen() 호출 후 nav('restaurant') 호출
+*/
+function openRest(id) {
+  // TODO
+}
+
+/*
+  [3] 식당 화면 내용 채우기
+  - curRest의 emoji, bg, name, rating, time, fee 표시
+  - curRest.menus를 순회하며 메뉴 아이템 HTML 생성
+  - 수량 조절 버튼(changeQty)과 연결
+  - updateRestTotal() 호출
+*/
+function renderRestScreen() {
+  // TODO
+}
+
+/*
+  [4] 메뉴 수량 변경
+  - cart[mid] 값을 delta만큼 바꾸기 (최소 0)
+  - 화면의 수량 표시(<span id="q${mid}">)도 업데이트
+  - updateRestTotal() 호출
+*/
+function changeQty(mid, delta) {
+  // TODO
+}
+
+/*
+  [5] 식당 화면 하단 총액 업데이트
+  - curRest.menus에서 cart 수량 × 가격 합산 (소계)
+  - 소계 > 0이면 배달비(curRest.fee) 더하기
+  - rest-total 텍스트 갱신
+  - 소계가 0이면 to-cart-btn disabled
+*/
+function updateRestTotal() {
+  // TODO
+}
+
+/*
+  [6] 장바구니 화면 그리기
+  - curRest.menus 중 cart에 담긴 것만 필터
+  - 각 아이템에 삭제 버튼(removeItem) 연결
+  - 소계 / 배달비 / 총액 summary 표시
+  - cart-total 텍스트 갱신
+*/
+function renderCart() {
+  // TODO
+}
+
+/*
+  [7] 장바구니에서 아이템 제거
+  - cart[mid] 삭제
+  - renderCart() / updateRestTotal() 다시 호출
+*/
+function removeItem(mid) {
+  // TODO
+}
+
+/*
+  [8] 주문 처리 (가짜)
+  - 총액 계산 후 savedTotal / orderCount 업데이트
+  - nav('loading') 으로 로딩 화면 표시
+  - 2.5초 후 showComplete(total) 호출
+*/
+function placeOrder() {
+  // TODO
+}
+
+/*
+  [9] 완료 화면 표시
+  - stat-saved, stat-count, stat-coffee 텍스트 업데이트
+  - motive-text에 MOTIVES 중 랜덤 문구 설정
+  - showOnly('complete') 호출
+*/
+function showComplete(amount) {
+  // TODO
+}
+
+/*
+  [10] 처음으로 돌아가기
+  - cart, curRest 초기화
+  - showOnly('home') 호출
+*/
+function goHome() {
+  // TODO
+}
+
+// ════════════════════════════════════
+//  앱 시작
+// ════════════════════════════════════
+renderHome(); // [1]번 함수 구현 후 화면이 채워집니다
+</script>
+</body>
+</html>
