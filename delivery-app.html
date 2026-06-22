@@ -1545,7 +1545,21 @@ function esc(s) {
 // ════════════════════════════
 // 앱 시작
 // ════════════════════════════
-initApp();
+if (window.location.protocol === 'file:') {
+  document.getElementById('app').innerHTML = `
+    <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;padding:32px;text-align:center;background:#F5F5F5;">
+      <div style="font-size:56px;margin-bottom:20px">🛵</div>
+      <h2 style="font-size:20px;font-weight:800;margin-bottom:12px;color:#1A1A2E">서버를 통해 접속해주세요</h2>
+      <p style="font-size:14px;color:#6B7280;line-height:1.7;margin-bottom:28px">이 파일을 직접 열면 서버와 연결되지 않아요.<br>터미널에서 서버를 실행한 뒤 아래 주소로 접속해주세요.</p>
+      <div style="background:#1DC9A0;color:white;border-radius:14px;padding:14px 24px;font-size:15px;font-weight:700;margin-bottom:16px;cursor:pointer;user-select:all" onclick="navigator.clipboard?.writeText('http://localhost:3000').then(()=>this.textContent='✓ 복사됨!').catch(()=>{})">
+        http://localhost:3000
+      </div>
+      <p style="font-size:12px;color:#9CA3AF">서버가 꺼져 있다면 터미널에서:<br><code style="background:#E5E7EB;padding:2px 8px;border-radius:6px">node server.js</code></p>
+    </div>
+  `;
+} else {
+  initApp();
+}
 </script>
 </body>
 </html>

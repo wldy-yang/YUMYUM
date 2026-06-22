@@ -4,6 +4,8 @@ const { Server }     = require('socket.io');
 const { DatabaseSync } = require('node:sqlite');   // Node.js 22+ 내장
 const bcrypt         = require('bcryptjs');
 const jwt            = require('jsonwebtoken');
+const localtunnel    = require('localtunnel');
+const os             = require('os');
 
 const app    = express();
 const server = http.createServer(app);
@@ -256,6 +258,28 @@ io.on('connection', (socket) => {
 });
 
 // ── Start ────────────────────────────────────────────
-server.listen(PORT, () => {
-  console.log(`\n🛵  배달말고 서버 실행 중 → http://localhost:${PORT}\n`);
+function getLanIP() {
+  return Object.values(os.networkInterfaces())
+    .flat()
+    .find(i => i.family === 'IPv4' && !i.internal)?.address;
+}
+
+server.listen(PORT, async () => {
+  const lanIP = getLanIP();
+  console.log('\n🛵  YUMYUM 서버 실행 중\n');
+  console.log(`  📱 내 컴퓨터:   http://localhost:${PORT}`);
+  if (lanIP) {
+    console.log(`  🏠 같은 와이파이: http://${lanIP}:${PORT}`);
+  }
+  console.log('\n  🌐 인터넷 공개 URL 생성 중...');
+
+  try {
+    const tunnel = await localtunnel({ port: PORT });
+    console.log(`  🔗 친구에게 공유: ${tunnel.url}`);
+    console.log('\n  (위 URL을 친구에게 보내면 어디서든 접속 가능해요)\n');
+    tunnel.on('error', () => {});
+    tunnel.on('close', () => console.log('⚠️  터널이 닫혔어요. 서버를 재시작해주세요.'));
+  } catch {
+    console.log('  ⚠️  인터넷 터널 생성 실패 (같은 와이파이에서는 위 LAN 주소로 접속하세요)\n');
+  }
 });
