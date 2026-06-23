@@ -637,6 +637,42 @@
       transition: all 0.12s;
     }
     .emoji-opt.selected { border-color: var(--mint); background: var(--mint-light); }
+    
+    /* 🏆 랭킹 보드 스타일 */
+    .ranking-board {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      background: linear-gradient(135deg, #f4f9fd 0%, #d6ebf9 100%); 
+      border-radius: 16px;
+      padding: 20px 15px;
+      margin: 0 20px 20px 20px; 
+      box-shadow: var(--card-shadow); }
+
+    .ranker {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        width: 30%; }
+
+    .ranker-medal {
+        font-size: 24px;
+        margin-bottom: 5px; }
+
+    .ranker-name {
+        font-weight: 700;
+        font-size: 14px;
+        color: var(--text);
+        margin-bottom: 3px;
+        text-align: center; }
+
+    .ranker-amount {
+        font-size: 12px;
+        color: var(--mint-dark);
+        font-weight: bold; }
+
+    /* 1등은 특별히 좀 더 크게! */
+    .ranker.first { transform: scale(1.15); margin-bottom: 10px; }
   </style>
 </head>
 <body>
@@ -817,13 +853,19 @@
       <h2>친구</h2>
       <button class="add-friend-btn" onclick="showAddFriend()">+ 친구 추가</button>
     </div>
-    <!-- 받은 친구 요청 -->
-    <div id="friend-req-section" style="display:none">
-      <div class="req-section-label">받은 친구 요청</div>
-      <div class="friends-body" id="friend-req-list"></div>
-    </div>
-    <!-- 친구 목록 -->
-    <div class="friends-body" id="friends-list"></div>
+   <!-- 받은 친구 요청 -->
+<div id="friend-req-section" style="display:none">
+    <div class="req-section-label">받은 친구 요청</div>
+    <div class="friends-body" id="friend-req-list"></div>
+</div>
+<!--  명예의 전당 랭킹 보드 -->
+<div style="margin: 24px 20px 12px 20px;">
+    <h3 style="font-size: 16px; font-weight: 700; color: var(--text);">🏆 명예의 전당 🏆</h3>
+    <p style="font-size: 12px; color: var(--text-sub); margin-top: 2px;">이번 주 배달의 유혹을 가장 잘 참은 사람</p>
+</div>
+<div id="ranking-board" class="ranking-board"></div>
+<!-- 친구 목록 -->
+<div class="friends-body" id="friends-list"></div>
   </div>
 
   <!-- ══════════ 채팅 화면 ══════════ -->
@@ -1437,26 +1479,50 @@ function renderFriendsScreen() {
 }
 
 async function loadFriends() {
-  const listEl = document.getElementById('friends-list');
-  try {
-    const friends = await api('GET', '/api/friends');
-    if (friends.length === 0) {
-      listEl.innerHTML = `<div class="friends-empty"><div class="big">👥</div>아직 친구가 없어요.<br>친구를 추가해보세요!</div>`;
-      return;
+    const listEl = document.getElementById('friends-list');
+    const rankingEl = document.getElementById('ranking-board'); 
+    
+    try {
+        const friends = await api('GET', '/api/friends');
+        if (friends.length === 0) {
+            listEl.innerHTML = `<div class="friends-empty"><div class="big">👥</div>아직 친구가 없어요.</div>`;
+            rankingEl.style.display = 'none'; 
+            return;
+        }
+
+        // 🏆 금액이 높은 순서대로 친구들 줄 세우기 (내림차순 정렬)
+        const sortedFriends = [...friends].sort((a, b) => b.savedAmount - a.savedAmount);
+        const top3 = sortedFriends.slice(0, 3);
+        
+        // 랭킹 보드 화면에 그리기 (2등, 1등, 3등 순서 배치)
+        rankingEl.style.display = 'flex';
+        rankingEl.innerHTML = `
+            ${top3[1] ? `<div class="ranker second"><div class="ranker-medal">🥈</div><div class="ranker-name">${esc(top3[1].username)}</div><div class="ranker-amount">${top3[1].savedAmount.toLocaleString()}원</div></div>` : '<div class="ranker"></div>'}
+            
+            ${top3[0] ? `<div class="ranker first"><div class="ranker-medal">🥇</div><div class="ranker-name">${esc(top3[0].username)}</div><div class="ranker-amount">${top3[0].savedAmount.toLocaleString()}원</div></div>` : ''}
+            
+            ${top3[2] ? `<div class="ranker third"><div class="ranker-medal">🥉</div><div class="ranker-name">${esc(top3[2].username)}</div><div class="ranker-amount">${top3[2].savedAmount.toLocaleString()}원</div></div>` : '<div class="ranker"></div>'}
+        `;
+
+        // 👥 친구 목록 그리기
+        listEl.innerHTML = friends.map(f => {
+            return `
+            <div class="friend-card" onclick="openChat(${f.id},'${esc(f.username)}','${f.emoji}')">
+                <div class="friend-avatar">${f.emoji}</div>
+                <div class="friend-info">
+                    <div class="friend-name">${esc(f.username)}</div>
+                    <div class="friend-saved">💰 ${f.savedAmount.toLocaleString()}원 절약중</div>
+                </div>
+                <button class="chat-icon-btn" style="position: relative;" onclick="event.stopPropagation();openChat(${f.id},'${esc(f.username)}','${f.emoji}')">
+                    💬
+                    ${(f.unread_count || 0) > 0 ? `<span class="req-badge" style="top: -4px; right: -4px;">${f.unread_count || 0}</span>` : ''}
+                </button>
+            </div>`;
+        }).join('');
+
+    } catch (e) {
+        listEl.innerHTML = `<div class="friends-empty"><div class="big">⚠️</div>불러오기 실패</div>`;
     }
-    listEl.innerHTML = friends.map(f => `
-      <div class="friend-card" onclick="openChat(${f.id},'${esc(f.username)}','${f.emoji}')">
-        <div class="friend-avatar">${f.emoji}</div>
-        <div class="friend-info">
-          <div class="friend-name">${esc(f.username)}</div>
-          <div class="friend-saved">💰 ${f.savedAmount.toLocaleString()}원 절약중</div>
-        </div>
-        <button class="chat-icon-btn" onclick="event.stopPropagation();openChat(${f.id},'${esc(f.username)}','${f.emoji}')">💬</button>
-      </div>
-    `).join('');
-  } catch (e) {
-    listEl.innerHTML = `<div class="friends-empty"><div class="big">⚠️</div>불러오기 실패</div>`;
-  }
 }
 
 async function loadFriendRequests() {
