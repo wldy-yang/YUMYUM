@@ -876,53 +876,74 @@
 // ════════════════════════════
 const RESTAURANTS = [
   {
-    id: 1, name: 'bhc', emoji: '🍗', bg: '#FFF3E0', img: 'YUMYUMsrc/bhc.jpg.png',
-    rating: 4.9, time: '25~35분', fee: 2500,
+    id: 1, name: 'bhc',  img: 'YUMYUMsrc/bhc.jpg.png',
+    rating: 4.9, time: '25~35분', fee: 0,
     menus: [
-      { id: 11, name: '핫후라이드',        price: 23000, emoji: '🍗', img: 'YUMYUMsrc/bhc1.jpg.png' },
-      { id: 12, name: '쏘이갈릭킹(허니)', price: 23900, emoji: '🍗', img: 'YUMYUMsrc/bhc2.jpg.png' },
-      { id: 13, name: '콰삭킹',           price: 23000, emoji: '🍗', img: 'YUMYUMsrc/bhc3.jpg.png' },
-      { id: 14, name: '뿌링클',           price: 23000, emoji: '🍗', img: 'YUMYUMsrc/bhc4.jpg.png' },
-      { id: 15, name: '맛초킹',           price: 23000, emoji: '🍗', img: 'YUMYUMsrc/bhc5.jpg.png' },
-      { id: 16, name: '핫뿌링클',         price: 24000, emoji: '🍗', img: 'YUMYUMsrc/bhc6.jpg.png' },
-      { id: 17, name: '골드킹',           price: 22000, emoji: '🍗', img: 'YUMYUMsrc/bhc7.jpg.png' },
-      { id: 18, name: '뿌링치즈볼',       price:  6500, emoji: '🍗', img: 'YUMYUMsrc/bhc8.jpg.png' },
-      { id: 19, name: '제로콜라 1.5L',        price:  2500, emoji: '🥤', img: 'YUMYUMsrc/bhc9.jpg.png' },
+      { id: 11, name: '핫후라이드',        price: 23000,  img: 'YUMYUMsrc/bhc1.jpg.png' },
+      { id: 12, name: '쏘이갈릭킹(허니)', price: 23900,  img: 'YUMYUMsrc/bhc2.jpg.png' },
+      { id: 13, name: '콰삭킹',           price: 23000,  img: 'YUMYUMsrc/bhc3.jpg.png' },
+      { id: 14, name: '뿌링클',           price: 23000, img: 'YUMYUMsrc/bhc4.jpg.png' },
+      { id: 15, name: '맛초킹',           price: 23000,  img: 'YUMYUMsrc/bhc5.jpg.png' },
+      { id: 16, name: '핫뿌링클',         price: 24000,  img: 'YUMYUMsrc/bhc6.jpg.png' },
+      { id: 17, name: '골드킹',           price: 22000, img: 'YUMYUMsrc/bhc7.jpg.png' },
+      { id: 18, name: '뿌링치즈볼',       price:  6500,  img: 'YUMYUMsrc/bhc8.jpg.png' },
+      { id: 19, name: '제로콜라 1.5L',        price:  2500, img: 'YUMYUMsrc/bhc9.jpg.png' },
     ]
   },
   {
-    id: 2, name: '노모어피자', emoji: '🍕', bg: '#FFEBEE', img: 'YUMYUMsrc/nomore.jpg.png',
+    id: 2, name: '노모어피자', img: 'YUMYUMsrc/nomore.jpg.png',
     rating: 4.7, time: '30~40분', fee: 0,
     menus: [
-      { id: 21, name: '치즈피자',              price: 18800, emoji: '🍕', img: 'YUMYUMsrc/nomore1.jpg.png' },
-      { id: 22, name: '페퍼로니피자',          price: 19800, emoji: '🍕', img: 'YUMYUMsrc/nomore2.jpg.png' },
-      { id: 23, name: '베이컨포테이토피자',    price: 21800, emoji: '🍕', img: 'YUMYUMsrc/nomore3.jpg.png' },
-      { id: 24, name: '스윗고구마피자',        price: 21800, emoji: '🍕', img: 'YUMYUMsrc/nomore4.jpg.png' },
-      { id: 25, name: '베이컨하와이안피자',    price: 22800, emoji: '🍕', img: 'YUMYUMsrc/nomore5.jpg.png' },
-      { id: 26, name: '바질마스카포네뇨끼피자',price: 22800, emoji: '🍕', img: 'YUMYUMsrc/nomore6.jpg.png' },
-      { id: 27, name: '콰트로치즈피자',        price: 22800, emoji: '🧀', img: 'YUMYUMsrc/nomore7.jpg.png' },
-      { id: 28, name: '슈퍼콤비네이션피자',    price: 23800, emoji: '🥣', img: 'YUMYUMsrc/nomore8.jpg.png' },
-      { id: 29, name: '옥수수새우피자',        price: 23800, emoji: '🥣', img: 'YUMYUMsrc/nomore9.jpg.png' },
+      { id: 21, name: '치즈피자',              price: 18800, img: 'YUMYUMsrc/nomore1.jpg.png' },
+      { id: 22, name: '페퍼로니피자',          price: 19800,  img: 'YUMYUMsrc/nomore2.jpg.png' },
+      { id: 23, name: '베이컨포테이토피자',    price: 21800, img: 'YUMYUMsrc/nomore3.jpg.png' },
+      { id: 24, name: '스윗고구마피자',        price: 21800,  img: 'YUMYUMsrc/nomore4.jpg.png' },
+      { id: 25, name: '베이컨하와이안피자',    price: 22800,  img: 'YUMYUMsrc/nomore5.jpg.png' },
+      { id: 26, name: '바질마스카포네뇨끼피자',price: 22800,  img: 'YUMYUMsrc/nomore6.jpg.png' },
+      { id: 27, name: '콰트로치즈피자',        price: 22800,  img: 'YUMYUMsrc/nomore7.jpg.png' },
+      { id: 28, name: '슈퍼콤비네이션피자',    price: 23800,  img: 'YUMYUMsrc/nomore8.jpg.png' },
+      { id: 29, name: '옥수수새우피자',        price: 23800,  img: 'YUMYUMsrc/nomore9.jpg.png' },
     ]
   },
   {
-    id: 3, name: '스시히로', emoji: '🍱', bg: '#E8F5E9',
-    rating: 4.8, time: '35~45분', fee: 3000,
+    id: 3, name: '최고루',img: 'YUMYUMsrc/chinese.png',
+    rating: 4.8, time: '35~45분', fee: 0,
     menus: [
-      { id: 31, name: '연어초밥 세트',  price: 32000, emoji: '🍣' },
-      { id: 32, name: '참치초밥 세트',  price: 28000, emoji: '🍣' },
-      { id: 33, name: '우동',           price: 12000, emoji: '🍜' },
-      { id: 34, name: '미소국',         price:  3000, emoji: '🥣' },
+      { id: 31, name: '짜장면',  price: 7000, img: 'YUMYUMsrc/chinese1.png' },
+      { id: 32, name: '짬뽕',  price: 8000, img: 'YUMYUMsrc/chinese2.png' },
+      { id: 33, name: '짬짜면', price: 11000, img: 'YUMYUMsrc/chinese3.png' },
+      { id: 34, name: '차돌짬뽕', price:  11000, img: 'YUMYUMsrc/chinese4.png' },
+      { id: 35, name: '쟁반짜장',price:  9000, img: 'YUMYUMsrc/chinese5.png' },
+      { id: 36, name: '간짜장', price:  8000, img: 'YUMYUMsrc/chinese6.png' },
+      { id: 37, name: '볶음밥',price:  9000, img: 'YUMYUMsrc/chinese7.png' },
+      { id: 38, name: '탕수육',price:  17000, img: 'YUMYUMsrc/chinese8.png' },
+      { id: 39, name: '깐풍기',price:  28000, img: 'YUMYUMsrc/chinese9.png' },
     ]
   },
   {
-    id: 4, name: '버거브로스', emoji: '🍔', bg: '#F3E5F5',
+    id: 4, name: '맥도날드', emoji: '🍔', bg: '#F3E5F5',
     rating: 4.6, time: '20~30분', fee: 1500,
     menus: [
       { id: 41, name: '클래식 버거',    price:  8900, emoji: '🍔' },
       { id: 42, name: '더블 치즈버거',  price: 11900, emoji: '🍔' },
       { id: 43, name: '감자튀김 L',     price:  4500, emoji: '🍟' },
       { id: 44, name: '콜라 M',         price:  2500, emoji: '🥤' },
+    ]
+  },
+
+  {
+    id: 5, name: '맥도날드',img: 'YUMYUMsrc/mc.png',
+    rating: 4.6, time: '20~30분', fee: 1500,
+    menus: [
+      { id: 51, name: '1955버거 세트',    price:  9800, img: 'YUMYUMsrc/mc1.png' },
+      { id: 52, name: '빅맥 세트',  price: 9000, img: 'YUMYUMsrc/mc2.png' },
+      { id: 53, name: '맥스파이시 상하이버거 세트', price:  9100, img: 'YUMYUMsrc/mc3.png' },
+      { id: 54, name: '슈슈버거 세트', price:  7400, img: 'YUMYUMsrc/mc4.png' },
+      { id: 55, name: '베이컨 토마토 디럭스 세트', price:  9400,img: 'YUMYUMsrc/mc5.png' },
+      { id: 56, name: '트리플 치즈버거 라지 세트', price:  8900, img: 'YUMYUMsrc/mc7.png' },
+      { id: 57, name: '상하이 치킨 스낵랩', price:  4400, img: 'YUMYUMsrc/mc6.png' },
+      { id: 58, name: '맥너겟 6조각 세트', price:  7700, img: 'YUMYUMsrc/mc8.png' },
+      { id: 59, name: '오레오 맥플러리', price:  4400, img: 'YUMYUMsrc/mc9.png' },
     ]
   },
 ];
